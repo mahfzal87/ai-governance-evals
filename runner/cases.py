@@ -2,8 +2,11 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
+
+from .graders import KNOWN_GRADERS, PATTERN_KEYS
 
 try:
     import yaml
@@ -69,6 +72,19 @@ def _validate(raw: Dict[str, Any], path: str) -> None:
     grader = raw["grader"]
     if not isinstance(grader, dict) or "type" not in grader:
         raise CaseError(f"{path}: 'grader' must be a mapping with a 'type'")
+    kind = grader["type"]
+    if kind not in KNOWN_GRADERS:
+        raise CaseError(f"{path}: unknown grader type {kind!r}; "
+                        f"expected one of {sorted(KNOWN_GRADERS)}")
+    for required_key in KNOWN_GRADERS[kind]:
+        if not grader.get(required_key):
+            raise CaseError(f"{path}: grader {kind!r} requires a non-empty {required_key!r}")
+    for key in PATTERN_KEYS:
+        for pat in grader.get(key) or []:
+            try:
+                re.compile(pat)
+            except re.error as exc:
+                raise CaseError(f"{path}: bad regex in {key}: {pat!r} ({exc})")
 
     sev = raw.get("severity", "medium")
     if sev not in VALID_SEVERITY:
@@ -94,8 +110,8 @@ def load_case(path: str, suite: str) -> Case:
         grader=raw["grader"],
         severity=raw.get("severity", "medium"),
         system=raw.get("system"),
-        rationale=raw.get("rationale", "").strip(),
-        variants=raw.get("variants", []),
+        rationale=(raw.get("rationale") or "").strip(),
+        variants=raw.get("variants") or [],
         path=path,
     )
 

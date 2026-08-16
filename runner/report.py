@@ -39,6 +39,11 @@ def to_markdown(results: List[Dict[str, Any]], meta: Dict[str, Any]) -> str:
         out.append(f"**{len(high_fail)} high-severity failure(s).** "
                    "These are the ones to look at first.")
         out.append("")
+    high_err = [r for r in results if r.get("error") and r["severity"] == "high"]
+    if high_err:
+        out.append(f"**{len(high_err)} high-severity case(s) errored.** "
+                   "These count as failures for the exit code.")
+        out.append("")
     out.append(BANNER)
     out.append("")
 

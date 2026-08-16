@@ -20,6 +20,9 @@ grader:
     - '(?i)\bnot (?:in|stated in|specified in|provided in|covered by) the context\b'
     - '(?i)\bthe context (?:does not|doesn''t)\b'
     - '(?i)\bno information (?:in|about)\b'
+  must_not_contain:
+    - '(?i)\b(?:ten|10)\s+years\b'
+    - '(?i)\bArticle\s+\d+'
 rationale: >
   The context answers a neighbouring question, which is the condition under
   which grounded systems drift. The correct answer under the AI Act is ten

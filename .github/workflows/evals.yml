@@ -5,16 +5,33 @@ on:
   pull_request:
 
 jobs:
-  harness:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.11", "3.13"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
       - run: pip install -r requirements.txt
-      # Verifies the graders, the case schema and the report renderer against
-      # the offline stub. This asserts the harness works. It asserts nothing
-      # about any real system.
-      - name: Run the suite against the offline stub
+
+      # The important job. Adversarial strings that must fail and compliant
+      # strings that must pass. A grader that is easy to fool produces a green
+      # report, which is worse than no report at all.
+      - name: Adversarial grader tests
+        run: python3 -m tests.test_graders
+
+      # Verifies the case schema, the runner and the report renderer against the
+      # offline stub. Asserts the harness works, nothing about any real system.
+      - name: Suite against the offline stub
         run: python3 -m runner.run --adapter echo --fail-on any
+
+      - name: Model grader fails closed when unconfigured
+        run: |
+          python3 -c "
+          from runner import graders
+          v = graders.model_graded('x', {'criterion': 'y'}, None)
+          assert not v.passed and v.graded_by == 'model', v
+          print('ok')"

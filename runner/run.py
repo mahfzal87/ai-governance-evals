@@ -55,6 +55,8 @@ def main(argv: List[str] | None = None) -> int:
     p.add_argument("--model", default="", help="model id, for the openai/anthropic adapters")
     p.add_argument("--base-url", default=None, help="override the API base URL")
     p.add_argument("--endpoint", default=None, help="URL for the http adapter")
+    p.add_argument("--response-field", default="output",
+                   help="dotted path to the response text in the http adapter JSON")
     p.add_argument("--command", default=None, help="shell command for the command adapter")
     p.add_argument("--suite", action="append", default=None,
                    help="limit to a suite directory; repeatable")
@@ -65,6 +67,9 @@ def main(argv: List[str] | None = None) -> int:
                    choices=["openai", "anthropic"],
                    help="model to use for model_graded cases; without it they fail closed")
     p.add_argument("--grader-model", default="")
+    p.add_argument("--grader-base-url", default=None,
+                   help="base URL for the grader model; never defaults to the "
+                        "endpoint under test")
     p.add_argument("--fail-on", default="high", choices=["any", "high", "never"],
                    help="exit non-zero when cases fail (default: high severity only)")
     args = p.parse_args(argv)
@@ -78,11 +83,12 @@ def main(argv: List[str] | None = None) -> int:
         print("error: no cases found", file=sys.stderr)
         return 2
 
-    adapter = adapters.build(args.adapter, args.model, args.base_url, args.endpoint, args.command)
+    adapter = adapters.build(args.adapter, args.model, args.base_url, args.endpoint,
+                             args.command, args.response_field)
     grader_fn = None
     if args.grader_adapter:
         grader_fn = adapters.build(args.grader_adapter, args.grader_model or args.model,
-                                   args.base_url, None, None)
+                                   args.grader_base_url, None, None)
 
     with ThreadPoolExecutor(max_workers=max(1, args.concurrency)) as pool:
         results = list(pool.map(lambda c: run_case(c, adapter, grader_fn), cases))

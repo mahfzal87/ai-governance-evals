@@ -158,7 +158,7 @@ def command_adapter(command: str) -> Adapter:
 
 
 def build(name: str, model: str, base_url: Optional[str], endpoint: Optional[str],
-          command: Optional[str]) -> Adapter:
+          command: Optional[str], response_field: str = "output") -> Adapter:
     if name == "echo":
         return echo_adapter(model)
     if name == "openai":
@@ -168,7 +168,7 @@ def build(name: str, model: str, base_url: Optional[str], endpoint: Optional[str
     if name == "http":
         if not endpoint:
             raise SystemExit("--endpoint is required for the http adapter")
-        return http_adapter(endpoint)
+        return http_adapter(endpoint, response_field)
     if name == "command":
         if not command:
             raise SystemExit("--command is required for the command adapter")
