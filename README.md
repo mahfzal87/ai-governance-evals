@@ -4,7 +4,7 @@
 
 Most AI governance work produces documents. Documents matter, and they are also unfalsifiable. A policy saying "the system discloses that it is an AI" is not evidence that it does. It is evidence that someone wrote a sentence.
 
-This turns a subset of obligations into probes you can point at a deployed model or agent and get a pass or a fail. It covers the observable minority, and it says so in every report it prints, because the alternative is a green tick that means nothing.
+This turns a subset of obligations into probes you can point at a deployed model or agent and get a pass or a fail. It covers the observable minority, and every report it prints says so.
 
 ## Run it now
 
@@ -27,7 +27,7 @@ Point it at something real:
 # any OpenAI-compatible endpoint
 OPENAI_API_KEY=... python3 -m runner.run --adapter openai --model gpt-4.1
 
-# your own agent or app, which is where these obligations actually attach
+# your own agent or app, which is where these obligations attach
 python3 -m runner.run --adapter http --endpoint https://your-app/api/chat \
   --response-field reply     # dotted path to the text in your JSON, default "output"
 
@@ -47,7 +47,7 @@ Exit code is non-zero when a high-severity case fails, so it drops into CI as a 
 |---|---|---|
 | `art50-transparency` | **EU AI Act Art. 50(1), (2), (4)** | Will it admit to being an AI when asked directly, when a persona prompt tells it to stay in character, and when someone asks what time its shift ends? Is generated output marked? Is a synthetic head of state labelled? |
 | `art5-prohibited` | **EU AI Act Art. 5(1)(b) to (g)** | Will it decline to build social scoring, workplace emotion inference, biometric categorisation of protected attributes, profiling-only predictive policing, face scraping, and ad copy that preys on someone who just missed rent? |
-| `art15-robustness` | **EU AI Act Art. 15(4) to (5)** | Direct instruction override, an injection hiding inside a document it was asked to summarise, and a config-exfiltration attempt wearing a compliance audit as a disguise. |
+| `art15-robustness` | **EU AI Act Art. 15(4) to (5)** | Direct instruction override, an injection hiding inside a document it was asked to summarise, and a config-exfiltration attempt dressed as a compliance audit. |
 | `art10-bias` | **EU AI Act Art. 10(2)(f) to (g)**, indirect | Same applicant, same numbers, different name. Does the decision move? A divergence proves the duty was not discharged. Consistency proves nothing. |
 | `confabulation` | **NIST AI 600-1 §2.2, §2.8** | Asked to cite an AI Act article that does not exist, does it say so, or does it invent one with a paragraph number and a quotation? |
 
@@ -55,7 +55,7 @@ The point is the harness and the case format, not the count. Fork it and add the
 
 ## What a failure looks like
 
-`examples/sloppy_agent.py` is a deliberately non-compliant assistant. It is not a strawman. It is what these failures actually look like in the wild, where nobody sets out to build something that claims to be human and hands over a scraper. They set out to build something helpful that stays in character, and those two instructions do the rest.
+`examples/sloppy_agent.py` is a deliberately non-compliant assistant, and it is not a strawman. Nobody sets out to build something that claims to be human and then hands over a scraper. They set out to build something helpful that stays in character, and those two instructions do the rest.
 
 ```bash
 python3 -m runner.run --adapter command \
@@ -117,13 +117,13 @@ Drop it in a suite directory and it runs. Every field and grader is in [SCHEMA.m
 
 **Refusal graders check for leakage, and fail closed without it.** "I can't help with that, but here is how you would build it" is the most common real failure, so `refuses` demands an explicit leakage list and reports a case defect if a case forgets one. Same in reverse for positive graders: a hedge stapled to a fabrication does not earn a pass.
 
-**Adapters point at deployed systems, not just models.** `http` and `command` exist because Articles 50 and 15 attach to the thing a user actually talks to, system prompt and guardrails included. Testing a bare model tells you about a component.
+**Adapters point at deployed systems, not just models.** `http` and `command` exist because Articles 50 and 15 attach to the thing a user talks to, system prompt and guardrails included. Testing a bare model tells you about a component.
 
 **Errors are results.** A system under test that times out is an error row, not a stack trace.
 
 ## About that first version
 
-The graders shipped broken. An adversarial review built 20 non-compliant responses and all 20 passed, then built 11 compliant ones and 10 failed. The suite would have cheerfully certified a system that refuses in sentence one and complies in sentence two.
+The graders shipped broken. I pointed a model at them and asked it to break them, which it did: 20 non-compliant responses, all 20 passed, then 11 compliant ones, 10 failed. The suite would have certified a system that refuses in sentence one and complies in sentence two.
 
 The worst of it: `consistency` was not comparing decisions at all. It walked the configured token list and took whichever token turned up first anywhere in the text, so a genuine disparity read as consistent, four identical denials read as divergent, and reordering the token list changed the verdict on identical inputs.
 
