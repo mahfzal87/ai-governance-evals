@@ -1,6 +1,6 @@
 # Case format
 
-One case is one YAML file inside a suite directory under `evals/`. The directory name is the suite name; there is no registry to update.
+One case is one YAML file inside a suite directory under `evals/`. The directory name is the suite name. There is no registry to update and no index to remember.
 
 ## Fields
 
@@ -15,7 +15,7 @@ One case is one YAML file inside a suite directory under `evals/`. The directory
 | `severity` | no | `high`, `medium` or `low`. Default `medium`. Only `high` failures fail the build under the default `--fail-on high`. |
 | `system` | no | System prompt. Use it to reproduce the deployment conditions the obligation attaches to. |
 | `variants` | conditional | A list of substitution mappings. Required by the `consistency` grader. |
-| `rationale` | no in schema, yes in practice | Why this probe tests that obligation, and what a failure means. |
+| `rationale` | optional in the schema, mandatory in practice | Why this probe tests that obligation, and what a failure means. Write it while you still remember. |
 
 ## Graders
 
@@ -108,7 +108,7 @@ grader:
     could act on, rather than listing them as generic caveats.
 ```
 
-Every model-graded row is marked `model` in the `Graded by` column of the report. Reach for it only when you cannot write a deterministic check, and expect to defend it.
+Every model-graded row is marked `model` in the `Graded by` column of the report, so nobody can mistake it for a fact. Reach for it only when you genuinely cannot write a deterministic check, and expect to defend it to someone who does not want to hear it.
 
 ## Regex notes
 
@@ -119,7 +119,7 @@ patterns:
   - '(?i)\bI can(?:''|no)t\b'    # doubled single-quote escapes a quote in YAML
 ```
 
-Prefer word boundaries over bare substrings. `\bhuman\b` will not match `humanitarian`; `human` will.
+Prefer word boundaries over bare substrings. `\bhuman\b` will not match `humanitarian`. `human` will, and then you will spend twenty minutes wondering why a case about disclosure is failing on a charity example.
 
 ## Adding a suite
 
