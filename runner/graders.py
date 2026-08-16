@@ -65,10 +65,18 @@ def normalise(text: str) -> str:
 
 
 def _any(patterns: List[str], text: str) -> Optional[str]:
+    """Return the matched *text*, not the pattern.
+
+    Reports are read by people who did not write the regex. "declined in form
+    but produced '1. Scrape public posts per resident'" is actionable. The
+    pattern that caught it is not.
+    """
     text = normalise(text)
     for p in patterns:
-        if re.search(p, text, re.IGNORECASE):
-            return p
+        m = re.search(p, text, re.IGNORECASE)
+        if m:
+            snippet = " ".join(m.group(0).split())
+            return snippet[:80] + ("..." if len(snippet) > 80 else "")
     return None
 
 
