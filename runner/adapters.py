@@ -10,12 +10,21 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import time
 import urllib.error
 import urllib.request
 from typing import Callable, Optional
 
 Adapter = Callable[[str, Optional[str]], str]
-TIMEOUT = 90
+TIMEOUT = 300
+# Reasoning models can spend a large token budget before emitting any text, so a
+# small max_tokens silently yields an empty response rather than a short one.
+# Measured: a code-generation prompt burned all 16,384 tokens on thinking and
+# emitted nothing. The same prompt at 40,000 used 17,125 thinking tokens and
+# then wrote 37,619 characters. Budget for thinking plus the answer, not the answer.
+MAX_TOKENS = 40000
+# Hard wall-clock cap per generation, so a stalled stream fails instead of hanging.
+DEADLINE = 420
 
 
 def _post(url: str, payload: dict, headers: dict) -> dict:
@@ -27,6 +36,60 @@ def _post(url: str, payload: dict, headers: dict) -> dict:
     except urllib.error.HTTPError as exc:
         detail = exc.read().decode("utf-8", "replace")[:300]
         raise RuntimeError(f"HTTP {exc.code} from {url}: {detail}") from None
+
+
+
+def _stream_anthropic(url: str, payload: dict, headers: dict, deadline_s: int) -> dict:
+    """Read an SSE stream and rebuild the parts we need.
+
+    Long generations must be streamed. A non-streaming request holds the
+    connection open while the model thinks, keep-alives keep resetting the socket
+    timeout, and the call can hang indefinitely rather than failing. That cost an
+    hour of wall clock before it was diagnosed, so it is not a hypothetical.
+    """
+    payload = dict(payload, stream=True)
+    body = json.dumps(payload).encode("utf-8")
+    # Ask for an uncompressed event stream and read raw chunks. Iterating the
+    # response line by line looks equivalent and is not: it buffers, and a long
+    # generation blocks for minutes past any deadline instead of streaming.
+    headers = dict(headers, accept="text/event-stream")
+    headers["accept-encoding"] = "identity"
+    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+    started = time.time()
+    text_parts, stop_reason, usage = [], None, {}
+    buf = b""
+    try:
+        with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+            while True:
+                if time.time() - started > deadline_s:
+                    raise RuntimeError(f"stream exceeded {deadline_s}s deadline")
+                chunk = resp.read(4096)
+                if not chunk:
+                    break
+                buf += chunk
+                while b"\n" in buf:
+                    raw, buf = buf.split(b"\n", 1)
+                    line = raw.decode("utf-8", "replace").strip()
+                    if not line.startswith("data:"):
+                        continue
+                    try:
+                        event = json.loads(line[5:].strip())
+                    except ValueError:
+                        continue
+                    etype = event.get("type")
+                    if etype == "content_block_delta":
+                        delta = event.get("delta", {})
+                        if delta.get("type") == "text_delta":
+                            text_parts.append(delta.get("text", ""))
+                    elif etype == "message_delta":
+                        stop_reason = event.get("delta", {}).get("stop_reason", stop_reason)
+                        usage.update(event.get("usage") or {})
+                    elif etype == "error":
+                        raise RuntimeError(f"stream error: {event.get('error')}")
+    except urllib.error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", "replace")[:300]
+        raise RuntimeError(f"HTTP {exc.code} from {url}: {detail}") from None
+    return {"text": "".join(text_parts), "stop_reason": stop_reason, "usage": usage}
 
 
 DECLINE = ("I can't help with that. Building that would be a prohibited practice "
@@ -118,13 +181,25 @@ def anthropic_adapter(model: str, base_url: Optional[str] = None) -> Adapter:
     url = (base_url or "https://api.anthropic.com/v1").rstrip("/") + "/messages"
 
     def call(prompt: str, system: Optional[str] = None) -> str:
-        payload = {"model": model, "max_tokens": 1024, "temperature": 0,
+        # No temperature. Newer models reject it outright ("`temperature` is
+        # deprecated for this model"), and pinning it to 0 on the ones that still
+        # accept it buys less reproducibility than it looks like it does.
+        payload = {"model": model, "max_tokens": MAX_TOKENS,
                    "messages": [{"role": "user", "content": prompt}]}
         if system:
             payload["system"] = system
-        data = _post(url, payload, {"x-api-key": key, "anthropic-version": "2023-06-01",
-                                    "content-type": "application/json"})
-        return "".join(b.get("text", "") for b in data.get("content", []))
+        res = _stream_anthropic(url, payload,
+                                {"x-api-key": key, "anthropic-version": "2023-06-01",
+                                 "content-type": "application/json"}, DEADLINE)
+        text = res["text"]
+        if not text.strip():
+            # Never hand back an empty string as though it were an answer. A
+            # reasoning model can spend its whole budget thinking and emit no
+            # text; scoring that as "no disclosure" would put a fabricated zero
+            # in the results.
+            raise RuntimeError(
+                f"no text returned (stop_reason={res['stop_reason']}, usage={res['usage']})")
+        return text
     return call
 
 

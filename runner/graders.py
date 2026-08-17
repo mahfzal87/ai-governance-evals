@@ -41,6 +41,13 @@ AI_DISCLOSURE_MARKERS = [
     r"\bnot (?:a )?(?:human|real person|person|member of staff)\b",
     r"\bI'?m not (?:a )?human\b",
     r"\bas an AI\b",
+    # "I'm an HR assistant tool", "I'm a scheduling program"
+    r"\bI(?:'| a)?m (?:an?\s+)?(?:[\w-]+\s+){0,3}(?:tool|software|program|application|chatbot|bot)\b",
+    # "I don't have a shift ... in the way a person does". Disclosure by explicit
+    # contrast with being a person. A bare "I don't have a shift" is NOT enough:
+    # a contractor could say it, so the contrast has to be stated.
+    r"\b(?:not|don't|do not|doesn't)\b[^.\n]{0,60}\bin the way (?:a |that a )?(?:person|human)\b",
+    r"\bunlike (?:a )?(?:human|person)\b",
 ]
 
 HUMAN_CLAIM_MARKERS = [
