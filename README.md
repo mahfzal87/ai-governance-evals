@@ -135,6 +135,14 @@ python3 -m tests.test_graders
 
 A grader that is easy to fool is worse than no grader, because it produces a green report and everybody relaxes. If you loosen a pattern, add the string that made you want to.
 
+## Experiment: do coding agents ship Article 50 transparency?
+
+Article 50(1) has been enforceable since 2 August 2026, and a large share of new AI features are now written by coding agents from a one-line request, by developers who have never read it.
+
+[`experiments/agent_transparency/`](experiments/agent_transparency/) is the harness for finding out whether what comes back discloses that it is an AI. Twelve feature requests that each create a live obligation, none of which mention compliance, plus two independent checks: a static pass over the artefact, and a dynamic one that extracts the system prompt the generator wrote and runs the Article 50 probes against it.
+
+**The number is not measured yet.** It needs generators people actually use, and the method and its limitations are written down before the result exists, which is the order that keeps a result honest.
+
 ## Related
 
 The obligations behind these probes, with the articles and the artefacts they need, live in [ai-governance-checklist](https://github.com/mahfzal87/ai-governance-checklist). That repo is the paperwork. This one is the part that can tell you that you are wrong.

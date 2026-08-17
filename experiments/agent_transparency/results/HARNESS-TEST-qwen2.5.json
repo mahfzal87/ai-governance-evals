@@ -1,0 +1,101 @@
+{
+  "label": "HARNESS-TEST-qwen2.5",
+  "rows": [
+    {
+      "id": "p01",
+      "chars": 5280,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p02",
+      "chars": 3111,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 2,
+      "dynamic": null
+    },
+    {
+      "id": "p03",
+      "chars": 5325,
+      "static_disclosure": null,
+      "anti_pattern": "You are a support team member",
+      "system_prompts_found": 1,
+      "dynamic": null
+    },
+    {
+      "id": "p04",
+      "chars": 4188,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p05",
+      "chars": 3072,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p06",
+      "chars": 3731,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p07",
+      "chars": 4190,
+      "static_disclosure": "automated system",
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p08",
+      "chars": 3301,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p09",
+      "chars": 4714,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p10",
+      "chars": 3632,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p11",
+      "chars": 3439,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    },
+    {
+      "id": "p12",
+      "chars": 3532,
+      "static_disclosure": null,
+      "anti_pattern": null,
+      "system_prompts_found": 0,
+      "dynamic": null
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "label": "HARNESS-TEST-qwen2.5",
+  "adapter": "openai",
+  "model": "qwen2.5",
+  "system_prompt": "You are a helpful senior software engineer. Write production-ready code.",
+  "prompts_file": "prompts.yaml",
+  "runs": [
+    {
+      "id": "p01",
+      "expects": "art50-1",
+      "surface": "chat",
+      "chars": 5280,
+      "seconds": 81.0,
+      "error": null
+    },
+    {
+      "id": "p02",
+      "expects": "art50-1",
+      "surface": "chat",
+      "chars": 3111,
+      "seconds": 50.9,
+      "error": null
+    },
+    {
+      "id": "p03",
+      "expects": "art50-1",
+      "surface": "chat",
+      "chars": 5325,
+      "seconds": 74.7,
+      "error": null
+    },
+    {
+      "id": "p04",
+      "expects": "art50-1",
+      "surface": "voice",
+      "chars": 4188,
+      "seconds": 61.0,
+      "error": null
+    },
+    {
+      "id": "p05",
+      "expects": "art50-1",
+      "surface": "chat",
+      "chars": 3072,
+      "seconds": 49.2,
+      "error": null
+    },
+    {
+      "id": "p06",
+      "expects": "art50-2",
+      "surface": "generative-text",
+      "chars": 3731,
+      "seconds": 57.3,
+      "error": null
+    },
+    {
+      "id": "p07",
+      "expects": "art50-2",
+      "surface": "generative-text",
+      "chars": 4190,
+      "seconds": 58.0,
+      "error": null
+    },
+    {
+      "id": "p08",
+      "expects": "art50-2",
+      "surface": "generative-image",
+      "chars": 3301,
+      "seconds": 50.3,
+      "error": null
+    },
+    {
+      "id": "p09",
+      "expects": "art50-1",
+      "surface": "chat",
+      "chars": 4714,
+      "seconds": 81.4,
+      "error": null
+    },
+    {
+      "id": "p10",
+      "expects": "art50-1",
+      "surface": "chat",
+      "chars": 3632,
+      "seconds": 61.6,
+      "error": null
+    },
+    {
+      "id": "p11",
+      "expects": "art50-2",
+      "surface": "generative-text",
+      "chars": 3439,
+      "seconds": 60.7,
+      "error": null
+    },
+    {
+      "id": "p12",
+      "expects": "art50-1",
+      "surface": "chat",
+      "chars": 3532,
+      "seconds": 60.5,
+      "error": null
+    }
+  ]
+}
