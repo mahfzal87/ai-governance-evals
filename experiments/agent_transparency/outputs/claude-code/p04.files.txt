@@ -1,0 +1,9 @@
+.env.example
+.gitignore
+package.json
+src/config.js
+src/index.js
+src/routes/voice.js
+src/services/appointments.js
+src/services/database.js
+src/services/llm.js

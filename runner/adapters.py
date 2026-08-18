@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import shlex
 import subprocess
 import time
 import urllib.error
@@ -221,10 +222,23 @@ def http_adapter(endpoint: str, response_field: str = "output") -> Adapter:
     return call
 
 
-def command_adapter(command: str) -> Adapter:
-    """Runs a shell command, writes the prompt to stdin, reads stdout."""
+def command_adapter(command: str, system_flag: Optional[str] = None) -> Adapter:
+    """Runs a shell command, writes the prompt to stdin, reads stdout.
+
+    `system_flag` is the CLI flag the tool uses for a system prompt, for example
+    `--system-prompt`. Without it a system prompt would be silently dropped, and
+    a probe that depends on the persona would be testing nothing at all.
+    """
     def call(prompt: str, system: Optional[str] = None) -> str:
-        proc = subprocess.run(command, shell=True, input=prompt, capture_output=True,
+        cmd = command
+        if system:
+            if system_flag:
+                cmd = f"{command} {system_flag} {shlex.quote(system)}"
+            else:
+                raise RuntimeError(
+                    "this case needs a system prompt but no --system-flag was given; "
+                    "refusing to run a probe with the persona silently dropped")
+        proc = subprocess.run(cmd, shell=True, input=prompt, capture_output=True,
                               text=True, timeout=TIMEOUT)
         if proc.returncode != 0:
             raise RuntimeError(f"command exited {proc.returncode}: {proc.stderr[:300]}")
@@ -233,7 +247,8 @@ def command_adapter(command: str) -> Adapter:
 
 
 def build(name: str, model: str, base_url: Optional[str], endpoint: Optional[str],
-          command: Optional[str], response_field: str = "output") -> Adapter:
+          command: Optional[str], response_field: str = "output",
+          system_flag: Optional[str] = None) -> Adapter:
     if name == "echo":
         return echo_adapter(model)
     if name == "openai":
@@ -247,5 +262,5 @@ def build(name: str, model: str, base_url: Optional[str], endpoint: Optional[str
     if name == "command":
         if not command:
             raise SystemExit("--command is required for the command adapter")
-        return command_adapter(command)
+        return command_adapter(command, system_flag)
     raise SystemExit(f"unknown adapter: {name}")
